@@ -1,4 +1,4 @@
 package com.pandora.www.httpToFtp;
 
-public class Http_to_ftp {
+public class Application {
 }

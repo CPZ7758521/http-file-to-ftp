@@ -1,14 +1,14 @@
 package com.pandora.www.httpToFtp.utils;
 
 import com.pandora.www.httpToFtp.config.Config;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -43,14 +43,45 @@ public class Http_to_tmp_file {
 
                 InputStream content = httpClient.execute(httpGet).getEntity().getContent();
 
+                byte[] getData = readInputStreamToByte(content);
 
+                //文件保存位置
+                File saveDir = new File(savePath);
+                if (!saveDir.exists()) {
+                    saveDir.mkdir();
+                }
+                File file = new File(saveDir + File.separator + fileName);
+                FileOutputStream fos = new FileOutputStream(file);
+
+                fos.write(getData);
+                fos.close();
+                content.close();
+                LOG.info("下载：" + startDay + "文件 下载成功！");
+
+                startDate = startDate.plusDays(1L);
+                startDay = startDate.format(df);
             }
-        }
 
-        return result;
+            LOG.info("共\t" + dateDiff + "\t 天");
+            result = true;
+            return result;
+        }
     }
 
-    private void deleteFile(String savePath) {
+    public byte[] readInputStreamToByte(InputStream inputStream) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len = 0;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        while ((len = inputStream.read(buffer)) != -1) {
+            bos.write(buffer, 0, len);
+        }
+        bos.close();
+        return bos.toByteArray();
+    }
 
+    private void deleteFile(String filePath) throws IOException {
+        //delete local file
+        File dir = new File(filePath);
+        FileUtils.deleteDirectory(dir);
     }
 }
